@@ -38,7 +38,7 @@ def insert_api_column_all(df):
     # Function to get authorization
     def getBearerAuthorization():
         url = "https://apis.fedex.com/oauth/token"
-        payload = "grant_type=client_credentials&client_id=l7ac658e93122b45f88bee9e828571bfed&client_secret=f405427382c8491e8bd21649321c64e2"
+        payload = " " # pulled from FedEx Developer site
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
