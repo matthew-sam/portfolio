@@ -1,0 +1,244 @@
+-- Temp table creation
+
+-- table of all entries for each products most recent dates
+CREATE TABLE #MostRecentPurchase (
+        MaxDate datetime,
+		PLI_0 nvarchar(6),
+        PLICRI1_0 nvarchar(40),
+        UOM_0 nvarchar(3),
+        CUR_0 nvarchar(3)
+) 
+
+-- make another temp table that will have all instances of the unique combos not just when the max date
+CREATE TABLE #AllPurchases (
+        MaxDate datetime,
+		PLI_0 nvarchar(6),
+        PLICRI1_0 nvarchar(40),
+        UOM_0 nvarchar(3),
+        CUR_0 nvarchar(3)
+) 
+
+-- only take where unique combos of PLI_0, PLICRI1_0, UOM_0, CUR_0
+CREATE TABLE #NoSingleCases (
+        MaxDate datetime,
+		PLI_0 nvarchar(6),
+        PLICRI1_0 nvarchar(40),
+        UOM_0 nvarchar(3),
+        CUR_0 nvarchar(3)
+) 
+
+CREATE TABLE #CompleteSet (
+        MaxDate datetime,
+		PLI_0 nvarchar(6),
+        PLICRI1_0 nvarchar(40),
+        UOM_0 nvarchar(3),
+        CUR_0 nvarchar(3),
+		MINQTY_0 numeric,
+        MAXQTY_0 numeric
+) 
+
+CREATE TABLE #WithGaps (
+        MaxDate datetime,
+		PLI_0 nvarchar(6),
+        PLICRI1_0 nvarchar(40),
+        UOM_0 nvarchar(3),
+        CUR_0 nvarchar(3),
+		MINQTY_0 numeric,
+        MAXQTY_0 numeric,
+		gap_previous_to_current numeric
+) 
+
+-- this should give the most recent instance of a product and the products with gaps >1
+CREATE TABLE #BadPriceBreaks (
+        MaxDate datetime,
+		PLI_0 nvarchar(6),
+        PLICRI1_0 nvarchar(40),
+        UOM_0 nvarchar(3),
+        CUR_0 nvarchar(3),
+		MINQTY_0 numeric,
+        MAXQTY_0 numeric,
+		gap_previous_to_current numeric
+) 
+
+
+
+
+
+
+DROP TABLE #MostRecentPurchase
+
+DROP TABLE #AllPurchases
+
+DROP TABLE #NoSingleCases
+
+DROP TABLE #CompleteSet
+
+DROP TABLE #WithGaps
+
+DROP TABLE #BadPriceBreaks
+
+
+
+
+
+-- Data filtering
+
+
+
+
+
+-- Step 1 create #MostRecentPurchase
+-- gives all entries for the unique combinations of PLI_0, PLICRI1_0, UOM_0, CUR_0 and the max XSTRDAT_0
+WITH MaxDateEntry AS (
+    SELECT
+		MAX(XSTRDAT_0) AS MaxDate,
+		PLI_0,
+        PLICRI1_0,
+        UOM_0,
+        CUR_0
+    FROM sagex3.LIVE.SPRICLIST
+   -- WHERE PLI_0='Y10CA' AND PLICRI1_0='64-FC2299X-47'
+	GROUP BY PLI_0, PLICRI1_0, UOM_0, CUR_0
+	
+)
+INSERT INTO #MostRecentPurchase (MaxDate, PLI_0, PLICRI1_0, UOM_0, CUR_0)
+
+SELECT
+    MaxDate,
+    PLI_0,
+    PLICRI1_0,
+    UOM_0,
+    CUR_0
+FROM MaxDateEntry
+
+
+
+-- Step 2 create #AllPurchases
+INSERT INTO #AllPurchases
+
+SELECT
+    s.XSTRDAT_0,
+	s.PLI_0,
+    s.PLICRI1_0,
+    s.UOM_0,
+    s.CUR_0
+FROM sagex3.LIVE.SPRICLIST s 
+JOIN #MostRecentPurchase m
+ON
+    s.XSTRDAT_0 = m.MaxDate
+	AND s.PLI_0 = m.PLI_0
+    AND s.PLICRI1_0 = m.PLICRI1_0
+    AND s.UOM_0 = m.UOM_0
+    AND s.CUR_0 = m.CUR_0
+
+
+
+-- Step 3 create #NoSingleCases
+INSERT INTO #NoSingleCases (MaxDate, PLI_0, PLICRI1_0, UOM_0, CUR_0)
+
+SELECT
+    a.MaxDate,
+    a.PLI_0,
+    a.PLICRI1_0,
+    a.UOM_0,
+    a.CUR_0
+FROM (
+    SELECT
+        MaxDate,
+        PLI_0,
+        PLICRI1_0,
+        UOM_0,
+        CUR_0,
+        COUNT(*) AS ComboCount
+    FROM #AllPurchases
+    GROUP BY MaxDate, PLI_0, PLICRI1_0, UOM_0, CUR_0
+) a
+WHERE a.ComboCount > 1
+
+
+
+-- Step 4 make #CompleteSet
+INSERT INTO #CompleteSet
+
+SELECT DISTINCT
+    n.MaxDate,
+    n.PLI_0,
+    n.PLICRI1_0,
+    n.UOM_0,
+    n.CUR_0,
+    s.MINQTY_0,
+    s.MAXQTY_0
+FROM #NoSingleCases n
+JOIN sagex3.LIVE.SPRICLIST s
+ON
+    n.PLI_0 = s.PLI_0
+    AND n.PLICRI1_0 = s.PLICRI1_0
+    AND n.UOM_0 = s.UOM_0
+    AND n.CUR_0 = s.CUR_0
+	AND n.MaxDate = s.XSTRDAT_0
+
+
+
+-- now i can take the complete set find the gaps and keep when the gaps are >1 not including the first instance
+
+
+
+-- Step 5 make #WithGaps
+INSERT INTO #WithGaps
+
+SELECT  
+	MaxDate AS XSTRDAT_0,
+	PLI_0, 
+	PLICRI1_0,
+	UOM_0, 
+	CUR_0,
+	MINQTY_0, 
+	MAXQTY_0,
+	gap_previous_to_current = 
+		CASE 
+			WHEN ROW_NUMBER() OVER (PARTITION BY PLICRI1_0 ORDER BY PLI_0, PLICRI1_0, UOM_0, CUR_0) = 1
+				THEN Null
+			WHEN MINQTY_0 < LAG(MAXQTY_0) OVER (PARTITION BY PLICRI1_0 ORDER BY PLI_0, PLICRI1_0, UOM_0, CUR_0) 
+				THEN Null
+			WHEN MINQTY_0 >= LAG(MAXQTY_0) OVER (PARTITION BY PLICRI1_0 ORDER BY PLI_0, PLICRI1_0, UOM_0, CUR_0) 
+				THEN MINQTY_0 - LAG(MAXQTY_0) OVER (PARTITION BY PLICRI1_0 ORDER BY PLI_0, PLICRI1_0, UOM_0, CUR_0)
+		ELSE NULL
+		END
+FROM #CompleteSet
+
+
+
+-- Run Step 6 after Steps 1-5 since it has a CTE
+
+
+
+-- Step 6 make #BadPriceBreaks
+WITH ValidCombinations AS (
+	SELECT DISTINCT MaxDate, PLI_0, PLICRI1_0, UOM_0, CUR_0
+    FROM #WithGaps
+    WHERE gap_previous_to_current IS NOT NULL AND gap_previous_to_current != 1
+)
+
+INSERT INTO #BadPriceBreaks
+
+SELECT *
+FROM #WithGaps wg
+WHERE EXISTS (
+    SELECT 1
+    FROM ValidCombinations vc
+    WHERE vc.MaxDate = wg.MaxDate
+    AND vc.PLI_0 = wg.PLI_0
+    AND vc.PLICRI1_0 = wg.PLICRI1_0
+    AND vc.UOM_0 = wg.UOM_0
+    AND vc.CUR_0 = wg.CUR_0
+)
+
+
+
+-- Solution
+SELECT DISTINCT MaxDate, PLI_0, PLICRI1_0, UOM_0, CUR_0
+FROM #BadPriceBreaks
+
+-- Solution with all info
+SELECT *
+FROM #BadPriceBreaks
