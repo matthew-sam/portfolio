@@ -1,0 +1,28 @@
+DOW/Dupont Cross Reference
+Description
+This report aims to identify the quantity of products within specific product classes that customers buy via distribution and which are bought from NSi (Manufacturing). Focusing on 2023, the classifications filter groups the customers based on their purchasing from LSR/HCR product classes and color dispersion products. Additionally, the dashboard identifies all products from specific product classes being purchased by the customers listed.
+
+Dimensions
+•	Quantity purchased, invoice count
+•	Sales representatives 
+•	Custom classification filter
+
+Measures
+•	The quantity of products purchased and number of invoices for each product is displayed
+
+Layout
+•	Left to right across the top the filters are for customer name, product name, and sales rep.
+•	Right side is a large table displaying all the products of the customers listed in the adjacent table, quantity purchased, and invoice count. 
+•	Left side has the classifications filter with the definitions of each selection given above it
+•	Below that filter is a table of the customer names that fit the classification filter selection
+
+Interactivity
+•	Sales rep filter will filter both tables to contain the customers and products associated with the selected sales rep
+•	Search functionality included to filter for a specific customer or product
+•	Action filter applied to both tables to filter by selecting an instance in the customer or products table
+o	Ex: Selecting any product from the customer product information table will filter the customers table to list only the customers that purchased the selected product
+•	Classifications filter only filters the customers table
+
+Refresh Schedule
+Data source – Unioned_Sales_History_2 which is updated daily at x PST
+
