@@ -1,0 +1,30 @@
+First Sales
+Description
+This report aims to identify products that were sold for the first time, and customers that were sold to for the first time from January 2020 to the present. Through date filters and parameters the report captures purchasing customers or products being purchased in a given period. Additionally, it has the functionality to identify each instance’s first sale information and totals over a specific time period.
+
+Dimensions
+•	Date Filter - Start date, End date 
+•	Parameters - First Sale Selection, Measurement Selection
+
+Measures
+•	The desired measure must be selected at the top and can be one of the following options:
+o	COGS, Margin Amount, Quantity Sold, Sales Amount
+•	The selected measure’s displayed values is dependent on the selection at the top and can be one of the following options
+o	New Customers, New Products
+•	The selected measures values are shown for each month from the start date to the end date
+
+Layout
+•	Date selection and parameters listed along the top
+•	Totals are displayed below the date selection and parameters
+•	The larger table displays information over the time period selected based on the selections from the parameters
+•	The table at the bottom displays the name of the first sale and the date it occurred 
+
+Interactivity
+•	Ex: If “New Customers” is selected the names displayed in the larger table will be all customers who have made a purchase within the dates selected and a count of all customers in the table is given in the upper left area of the report
+•	Ex: Clicking on any name within the table after selecting “New Customers” will select that customer displaying their first sale information at the bottom and the following totals along the top
+o	Total of the selected measurement, average of selected measurement per month, selected customers product count, selected customers invoice count, and months since selected customers last purchase
+•	Ex: If “New Products” is selected and any name listed is selected, in First Sale Information table that product name will be displayed followed by the name of the first customer that bought the product and the date that it occurred
+•	Unselecting the selection of an instance in the larger table will clear the first sales information table and the values displayed, keeping only the count of all the instances of the table
+
+Refresh Schedule
+Data source – Unioned_Sales_History_2 which is updated daily at x PST
