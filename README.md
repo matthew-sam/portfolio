@@ -1,5 +1,12 @@
 # Projects Descriptions
 
+## Web-Based CRUD Application for SQL Server Data Management
+Developed a dynamic web application using Python Flask, HTML/CSS, JavaScript, and AJAX to manage SQL Server database data. Enabled users to perform CRUD operations on student information with features for adding, editing, and deleting records. Integrated APIs for efficient CSV file uploads, showcasing proficiency in full-stack development. Currently running locally for development purposes.
+
+## Survey Text Analysis for Training Program Improvements
+*Associated with RDAbbott*<br />
+Applied NLP techniques with Python libraries NLTK and spaCy to effectively analyze survey data. Produced word cloud visualizations and conducted sentiment analysis, providing actionable insights for training enhancements and targeted programs tailored to employee preferences.
+
 ## Price Range Anomaly Detection Using SQL
 *Associated with RDAbbott*<br />
 Led an initiative to identify and rectify improper price range setups for products through SQL analysis. The challenge involved identifying instances where products had inconsistent pricing structures. Employing advanced SQL techniques, including Common Table Expressions (CTEs), subqueries, and aggregate functions, a series of temporary tables were created to systematically filter and analyze the data. This approach successfully pinpointed products with pricing anomalies, allowing for necessary adjustments and ensuring pricing consistency for improved business operations.Led an initiative to identify and rectify improper price range setups for products through SQL analysis. The challenge involved identifying instances where products had inconsistent pricing structures. Employing advanced SQL techniques, including Common Table Expressions (CTEs), subqueries, and aggregate functions, a series of temporary tables were created to systematically filter and analyze the data. This approach successfully pinpointed products with pricing anomalies, allowing for necessary adjustments and ensuring pricing consistency for improved business operations.
