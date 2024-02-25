@@ -1,0 +1,104 @@
+import os
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+import pandas as pd
+import pyodbc
+import json
+from io import StringIO
+
+app = Flask(__name__)
+
+# Define database connection parameters
+db_server = 'DESKTOP-6B89TMU\SQLEXPRESS01'
+db_username = 'DESKTOP-6B89TMU\mathe'
+db_name = 'EduSphere_data'
+
+# Establish a connection to the SQL Server database
+conn = pyodbc.connect(driver='{SQL Server}', server=db_server, database=db_name, trusted_connection='yes')
+
+@app.route('/')
+def root():
+    return redirect(url_for('student-names'))
+
+@app.route('/student-names', methods=['GET', 'POST'])
+# display the sql table
+def index():
+    # SQL query to select all rows from the students table
+    sql_query = pd.read_sql_query('SELECT UserID, studentName, gradeLevel FROM Students', conn)
+    
+    # Convert the DataFrame to a list of dictionaries
+    data = sql_query.to_dict(orient='records')
+
+    # Pass the list to the template
+    return render_template('roster.html', data=data)
+
+# uses UserID 
+@app.route('/delete-student', methods=['POST'])
+def delete_student():
+    data = request.json
+    UserID = data['UserID']
+    cursor = conn.cursor()
+    # Use parameterized queries to prevent SQL injection
+    sql = "DELETE FROM Students WHERE UserID = ?"
+    cursor.execute(sql, (UserID,))
+    conn.commit()
+    return jsonify({'success': True, 'message': 'Student deleted successfully.'})
+
+# update row in sql table and uses UserID
+@app.route('/update-student', methods=['POST'])
+def update_student():
+    data = request.json
+    print("Updating student:", data)  # Debug print
+    cursor = conn.cursor()
+    sql = "UPDATE Students SET studentName = ?, gradeLevel = ? WHERE UserID = ?"
+    cursor.execute(sql, (data['studentName'], data['gradeLevel'], data['UserID']))
+    conn.commit()
+    return jsonify({'success': True})
+
+# add row with placeholders into SQL table
+@app.route('/add-student', methods=['POST'])
+def add_student():
+    # For simplicity, insert a row with some default values or blank values
+    cursor = conn.cursor()
+    sql = "INSERT INTO Students (studentName, gradeLevel) VALUES (?, ?)"
+    cursor.execute(sql, ('Name', 'Grade'))  # Adjust based on your schema; consider using NULLs or placeholders
+    conn.commit()
+    return jsonify({'success': True, 'message': 'New student added.'})
+
+
+@app.route('/upload-csv', methods=['POST'])
+def upload_csv():
+    # Check if the post request has the file part
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file:
+        # Assuming the file is a CSV, read it into a DataFrame
+        df = pd.read_csv(file)
+        try:
+            insert_data_from_csv(df)
+            return jsonify({'success': True}), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+# helper function (no route needed) to upload_csv to get csv inputted into SQL
+def insert_data_from_csv(df):
+    # Ensure connection is defined outside this function or passed as an argument
+    cursor = conn.cursor()
+
+    # Prepare the SQL insert statement. Make sure the column names match your database schema.
+    insert_query = "INSERT INTO Students (studentName, gradeLevel) VALUES (?, ?)"
+
+    # Iterate through DataFrame rows and insert each into the database
+    for index, row in df.iterrows():
+        # Use the exact column names from your CSV/DataFrame
+        cursor.execute(insert_query, (row['studentName'], row['gradeLevel']))
+
+    # Commit the transaction
+    conn.commit()
+    cursor.close()
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
