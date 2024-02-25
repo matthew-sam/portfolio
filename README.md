@@ -1,6 +1,6 @@
-Projects Descriptions
+#Projects Descriptions
 ---------------------
-1. Price Range Anomaly Detection Using SQL
+##Price Range Anomaly Detection Using SQL
 
 Associated with RDAbbott
 
