@@ -1,7 +1,7 @@
 # Projects Descriptions
 
 ## Price Range Anomaly Detection Using SQL
-*Associated with RDAbbott*
+*Associated with RDAbbott*<br />
 Led an initiative to identify and rectify improper price range setups for products through SQL analysis. The challenge involved identifying instances where products had inconsistent pricing structures. Employing advanced SQL techniques, including Common Table Expressions (CTEs), subqueries, and aggregate functions, a series of temporary tables were created to systematically filter and analyze the data. This approach successfully pinpointed products with pricing anomalies, allowing for necessary adjustments and ensuring pricing consistency for improved business operations.Led an initiative to identify and rectify improper price range setups for products through SQL analysis. The challenge involved identifying instances where products had inconsistent pricing structures. Employing advanced SQL techniques, including Common Table Expressions (CTEs), subqueries, and aggregate functions, a series of temporary tables were created to systematically filter and analyze the data. This approach successfully pinpointed products with pricing anomalies, allowing for necessary adjustments and ensuring pricing consistency for improved business operations.
 
 ## Customer Segmentation Dashboard 
