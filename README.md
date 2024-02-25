@@ -9,6 +9,8 @@ Associated with RDAbbott
 Created a dynamic Tableau dashboard to categorize silicone manufacturing customers based on their purchasing behavior. Users could explore data using the primary filter generated from a calculated field, date filters, search functionality, and drill-down options. An Excel table used in conjunction with the dashboard helps identify target customers for further investigation based on predefined difference values of certain product classes. This dashboard provided valuable insights for data-driven sales and marketing strategies in the silicone manufacturing industry.
 
 First Sales Dashboard
+Associated with RDAbbott
+Developed a Tableau dashboard in collaboration with stakeholder company to analyze customer and product first purchases within a specific timeframe. Additionally, the dashboard provides a comprehensive view of key metrics including quantity sold, cost of goods sold (COGS), margin amount, and sales amount . By gathering direct requirements from stakeholders, the dashboard was tailored to meet their needs, facilitating data-driven decisions regarding customer and product strategies. This interactive tool enhances collaboration between both companies, offering actionable insights into first purchase trends and enabling informed business decisions.
 
 Automating Data Retrieval with Python Scripts in Tableau
 Associated with RDAbbott
