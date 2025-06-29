@@ -14,11 +14,10 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 # Enable CORS for cross-origin requests (needed for embeddable widget)
 CORS(app, origins="*")
 
-# Set up OpenAI the exact same way as your working test script
-# can't have when uploading to GitHub
-openai.api_key = "insert_here"
+# Set up OpenAI API key from environment variable
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-app.logger.info("OpenAI legacy client initialized (same method as working test script)")
+app.logger.info("OpenAI legacy client initialized (API key pulled from env)")
 
 @app.route('/')
 def index():
