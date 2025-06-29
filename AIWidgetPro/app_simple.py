@@ -15,7 +15,7 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 CORS(app, origins="*")
 
 # Set up OpenAI the exact same way as your working test script
-openai.api_key = "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"
+openai.api_key = "[insert secret key here]"
 
 app.logger.info("OpenAI legacy client initialized (same method as working test script)")
 
