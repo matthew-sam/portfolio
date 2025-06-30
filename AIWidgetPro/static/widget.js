@@ -1,4 +1,4 @@
-(function() {More actions
+(function() {
     'use strict';
 
     // Widget configuration
