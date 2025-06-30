@@ -8,8 +8,6 @@ async function sendMessage(message) {
     try {
         showTypingIndicator();
 
-        console.log("Sending to:", WIDGET_CONFIG.apiUrl);
-
         const response = await fetch(`${WIDGET_CONFIG.apiUrl}/api/chat`, {
             method: 'POST',
             headers: {
@@ -17,7 +15,7 @@ async function sendMessage(message) {
             },
             body: JSON.stringify({
                 message: message,
-                history: conversationHistory,
+                history: conversationHistory
             })
         });
 
