@@ -1,21 +1,28 @@
+const WIDGET_CONFIG = {
+    apiUrl: window.AI_WIDGET_API_URL || "http://localhost:5000",
+};
+
+let conversationHistory = [];
+
 async function sendMessage(message) {
     try {
         showTypingIndicator();
 
-        console.log("Sending to:", WIDGET_CONFIG.apiUrl);
-        console.log("Client ID:", window.AI_WIDGET_CLIENT_ID);
+        const payload = {
+            message: message,
+            history: conversationHistory,
+            client_id: typeof window.AI_WIDGET_CLIENT_ID === "string" ? window.AI_WIDGET_CLIENT_ID : "default"
+        };
 
+        console.log("Sending to:", WIDGET_CONFIG.apiUrl);
+        console.log("Payload:", payload);
 
         const response = await fetch(`${WIDGET_CONFIG.apiUrl}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                message: message,
-                history: conversationHistory,
-                client_id: typeof window.AI_WIDGET_CLIENT_ID === "string" ? window.AI_WIDGET_CLIENT_ID : "default"
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
