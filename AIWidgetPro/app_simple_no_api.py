@@ -19,13 +19,13 @@ CORS(app, origins="*")
 # Your OpenAI Assistant ID (created in platform.openai.com)
 ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
 
-@app.route('/embed-demo')
-def embed_demo():
-    return render_template('embed-demo.html')
+# @app.route('/embed-demo')
+# def embed_demo():
+#     return render_template('embed-demo.html')
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
