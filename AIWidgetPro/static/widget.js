@@ -10,8 +10,8 @@
     };
     
     // Get client ID from URL query string
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientId = urlParams.get("client_id") || "default";
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const clientId = urlParams.get("client_id") || "default";
 
     // Conversation history
     let conversationHistory = [];
@@ -121,7 +121,7 @@
                 body: JSON.stringify({
                     message: message,
                     history: conversationHistory
-                    client_id: clientId
+                    // client_id: clientId
                 })
             });
             
