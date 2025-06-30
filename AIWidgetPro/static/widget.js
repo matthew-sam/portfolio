@@ -3,7 +3,7 @@
     
     // Widget configuration
     const WIDGET_CONFIG = {
-        apiUrl: window.AI_WIDGET_API_URL || window.location.origin,
+        apiUrl: "https://portfolio-production-879c.up.railway.app",
         position: 'bottom-right',
         primaryColor: '#ff6b35',
         welcomeMessage: 'Hi! I\'m your solar assistant. Ask me about solar panels, savings, installation, or financing!'
