@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import openai
 import logging
+import time
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +25,7 @@ def chat():
     client_id = data.get("client_id", "default")
 
     assistant_id = ASSISTANT_MAP.get(client_id, DEFAULT_ASSISTANT_ID)
+    app.logger.info(f"Using assistant: {assistant_id} for client_id: {client_id}")
 
     try:
         # Step 1: Create a thread
@@ -51,13 +53,15 @@ def chat():
             )
             if run_status.status == "completed":
                 break
+            elif run_status.status == "failed":
+                raise Exception("Assistant run failed")
+            time.sleep(0.5)
 
         # Step 5: Get last message
         messages = client.beta.threads.messages.list(thread_id=thread.id)
         ai_message = messages.data[0].content[0].text.value
 
         app.logger.info(f"AI response: {ai_message}")
-
         return jsonify({"success": True, "response": ai_message})
 
     except Exception as e:
