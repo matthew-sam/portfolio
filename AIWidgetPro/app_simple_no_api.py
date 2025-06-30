@@ -6,13 +6,8 @@ import time
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Map each client to their Assistant ID
-ASSISTANT_MAP = {
-    "solarco": "asst_zZE4Nr5XBwdulUANBvHexdEZ",
-    "legalfirm": "asst_abc123456789",
-    "new_company": "assistant_id_created"
-}
-DEFAULT_ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"  # Fallback
+# Set your assistant ID here
+ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"
 
 # Initialize OpenAI client
 client = openai.OpenAI()
@@ -22,10 +17,6 @@ def chat():
     data = request.json
     message = data.get("message", "")
     history = data.get("history", [])
-    client_id = data.get("client_id", "default")
-
-    assistant_id = ASSISTANT_MAP.get(client_id, DEFAULT_ASSISTANT_ID)
-    app.logger.info(f"Using assistant: {assistant_id} for client_id: {client_id}")
 
     try:
         # Step 1: Create a thread
@@ -40,7 +31,7 @@ def chat():
 
         # Step 3: Run assistant
         run = client.beta.threads.runs.create(
-            assistant_id=assistant_id,
+            assistant_id=ASSISTANT_ID,
             thread_id=thread.id
         )
         app.logger.info(f"Run started: {run.id}")
