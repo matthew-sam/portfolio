@@ -1,9 +1,12 @@
 import os
 import logging
-import openai
 import time
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+from openai import OpenAI
+
+# Initialize OpenAI client using new SDK style
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -12,9 +15,6 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 CORS(app, origins="*")
-
-# Set OpenAI API key
-openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Your OpenAI Assistant ID (created in platform.openai.com)
 ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"
@@ -41,11 +41,11 @@ def chat():
         app.logger.info(f"User message: {user_message}")
 
         # Step 1: Create a new thread (per session)
-        thread = openai.beta.threads.create()
+        thread = client.beta.threads.create()
         app.logger.info(f"Thread created: {thread.id}")
 
         # Step 2: Add user's message to the thread
-        openai.beta.threads.messages.create(
+        client.beta.threads.messages.create(
             thread_id=thread.id,
             role="user",
             content=user_message
@@ -53,7 +53,7 @@ def chat():
         app.logger.info("Message added to thread")
 
         # Step 3: Run the assistant on the thread
-        run = openai.beta.threads.runs.create(
+        run = client.beta.threads.runs.create(
             assistant_id=ASSISTANT_ID,
             thread_id=thread.id
         )
@@ -61,7 +61,7 @@ def chat():
 
         # Step 4: Poll until the run completes
         while True:
-            run_status = openai.beta.threads.runs.retrieve(
+            run_status = client.beta.threads.runs.retrieve(
                 thread_id=thread.id,
                 run_id=run.id
             )
@@ -72,7 +72,7 @@ def chat():
             time.sleep(1)
 
         # Step 5: Get messages (latest assistant response)
-        messages = openai.beta.threads.messages.list(thread_id=thread.id)
+        messages = client.beta.threads.messages.list(thread_id=thread.id)
         ai_response = next(
             (m.content[0].text.value for m in reversed(messages.data) if m.role == "assistant"),
             "Sorry, I couldn't generate a response."
