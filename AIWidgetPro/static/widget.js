@@ -2,6 +2,10 @@ async function sendMessage(message) {
     try {
         showTypingIndicator();
 
+        console.log("Sending to:", WIDGET_CONFIG.apiUrl);
+        console.log("Client ID:", window.AI_WIDGET_CLIENT_ID);
+
+
         const response = await fetch(`${WIDGET_CONFIG.apiUrl}/api/chat`, {
             method: 'POST',
             headers: {
@@ -10,7 +14,7 @@ async function sendMessage(message) {
             body: JSON.stringify({
                 message: message,
                 history: conversationHistory,
-                client_id: window.AI_WIDGET_CLIENT_ID || "default"
+                client_id: typeof window.AI_WIDGET_CLIENT_ID === "string" ? window.AI_WIDGET_CLIENT_ID : "default"
             })
         });
 
