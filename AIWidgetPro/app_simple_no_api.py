@@ -8,7 +8,8 @@ logging.basicConfig(level=logging.INFO)
 # Map each client to their Assistant ID
 ASSISTANT_MAP = {
     "solarco": "asst_zZE4Nr5XBwdulUANBvHexdEZ",
-    "legalfirm": "asst_abc123456789"
+    "legalfirm": "asst_abc123456789",
+    "new_company": "assistant_id_created"
 }
 DEFAULT_ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"  # Fallback
 
