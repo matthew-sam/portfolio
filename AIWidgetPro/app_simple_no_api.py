@@ -1,108 +1,93 @@
 import os
 import logging
 import openai
+import time
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 
-# Configure logging for debugging
+# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Create Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
-
-# Enable CORS for cross-origin requests (needed for embeddable widget)
 CORS(app, origins="*")
 
-# Set up OpenAI API key from environment variable
+# Set OpenAI API key
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-app.logger.info("OpenAI legacy client initialized (API key pulled from env)")
-
-# Dictionary of client-specific prompts
-CLIENT_PROMPTS = {
-    "solarco123": "You are a knowledgeable solar energy consultant embedded on a solar company website. Help customers understand solar panels, calculate potential savings, explain installation processes, and provide information about financing options. Be friendly, professional, and focus on the benefits of solar energy.",
-    "fitnesspro456": "You are a motivating fitness coach assistant. Offer friendly guidance on workouts, meal plans, fitness goals, and healthy lifestyle tips. Be supportive and energetic.",
-    "bakery789": "You are a helpful assistant for a family-owned bakery. Answer questions about menu items, custom orders, hours, and local delivery options with warmth and friendliness.",
-    "default": "You are a helpful and friendly customer service assistant. Politely help users with common questions about products, services, or support."
-}
+# Your OpenAI Assistant ID (created in platform.openai.com)
+ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"
 
 @app.route('/')
 def index():
-    """Main demonstration page showing the widget in action"""
     return render_template('index.html')
 
 @app.route('/embed-demo')
 def embed_demo():
-    """Demo page showing how the widget looks when embedded on another site"""
     return render_template('embed-demo.html')
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """API endpoint to handle chat messages and return AI responses"""
     try:
         app.logger.info("Chat endpoint called")
-
         data = request.get_json()
         app.logger.info(f"Received data: {data}")
 
-        if not data or 'message' not in data:
+        if not data or "message" not in data:
             return jsonify({'error': 'Message is required', 'success': False}), 400
 
-        user_message = data['message']
-        conversation_history = data.get('history', [])
-        client_id = data.get('client_id', 'default')  # <-- key line
-        system_prompt = CLIENT_PROMPTS.get(client_id, CLIENT_PROMPTS['default'])
+        user_message = data["message"]
+        app.logger.info(f"User message: {user_message}")
 
-        app.logger.info(f"Using client_id: {client_id}")
-        app.logger.info(f"Using system prompt: {system_prompt[:60]}...")
+        # Step 1: Create a new thread (per session)
+        thread = openai.beta.threads.create()
+        app.logger.info(f"Thread created: {thread.id}")
 
-        # Build message list with system prompt
-        messages = [{
-            "role": "system",
-            "content": system_prompt
-        }]
+        # Step 2: Add user's message to the thread
+        openai.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=user_message
+        )
+        app.logger.info("Message added to thread")
 
-        # Add conversation history
-        for msg in conversation_history[-10:]:
-            messages.append({
-                "role": msg.get('role', 'user'),
-                "content": msg.get('content', '')
-            })
+        # Step 3: Run the assistant on the thread
+        run = openai.beta.threads.runs.create(
+            assistant_id=ASSISTANT_ID,
+            thread_id=thread.id
+        )
+        app.logger.info(f"Run started: {run.id}")
 
-        # Add current user message
-        messages.append({
-            "role": "user",
-            "content": user_message
-        })
+        # Step 4: Poll until the run completes
+        while True:
+            run_status = openai.beta.threads.runs.retrieve(
+                thread_id=thread.id,
+                run_id=run.id
+            )
+            if run_status.status == "completed":
+                break
+            elif run_status.status in ["failed", "cancelled", "expired"]:
+                raise Exception(f"Run failed with status: {run_status.status}")
+            time.sleep(1)
 
-        app.logger.info("Calling OpenAI API...")
-
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=messages,
-            max_tokens=500,
-            temperature=0.7
+        # Step 5: Get messages (latest assistant response)
+        messages = openai.beta.threads.messages.list(thread_id=thread.id)
+        ai_response = next(
+            (m.content[0].text.value for m in reversed(messages.data) if m.role == "assistant"),
+            "Sorry, I couldn't generate a response."
         )
 
-        ai_response = response.choices[0].message.content
-        app.logger.info(f"OpenAI response received: {ai_response[:100]}...")
+        app.logger.info(f"AI response: {ai_response[:100]}...")
 
-        return jsonify({
-            'response': ai_response,
-            'success': True
-        })
+        return jsonify({'response': ai_response, 'success': True})
 
     except Exception as e:
-        app.logger.error(f"Error in chat endpoint: {str(e)}")
-        return jsonify({
-            'error': f'Failed to get AI response: {str(e)}',
-            'success': False
-        }), 500
+        app.logger.error(f"Error: {str(e)}")
+        return jsonify({'error': f'Failed to get AI response: {str(e)}', 'success': False}), 500
 
 @app.route('/widget.js')
 def widget_js():
-    """Serve the widget JavaScript file"""
     try:
         return app.send_static_file('widget.js'), 200, {'Content-Type': 'application/javascript'}
     except Exception as e:
@@ -111,7 +96,6 @@ def widget_js():
 
 @app.route('/widget.css')
 def widget_css():
-    """Serve the widget CSS file"""
     try:
         return app.send_static_file('widget.css'), 200, {'Content-Type': 'text/css'}
     except Exception as e:
