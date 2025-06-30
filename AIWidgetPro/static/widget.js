@@ -8,11 +8,6 @@ async function sendMessage(message) {
     try {
         showTypingIndicator();
 
-        const payload = {
-            message: message,
-            history: conversationHistory,
-        };
-
         console.log("Sending to:", WIDGET_CONFIG.apiUrl);
 
         const response = await fetch(`${WIDGET_CONFIG.apiUrl}/api/chat`, {
@@ -20,7 +15,10 @@ async function sendMessage(message) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                message: message,
+                history: conversationHistory,
+            })
         });
 
         const data = await response.json();
