@@ -19,6 +19,14 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 app.logger.info("OpenAI legacy client initialized (API key pulled from env)")
 
+# Dictionary of client-specific prompts
+CLIENT_PROMPTS = {
+    "solarco123": "You are a knowledgeable solar energy consultant embedded on a solar company website. Help customers understand solar panels, calculate potential savings, explain installation processes, and provide information about financing options. Be friendly, professional, and focus on the benefits of solar energy.",
+    "fitnesspro456": "You are a motivating fitness coach assistant. Offer friendly guidance on workouts, meal plans, fitness goals, and healthy lifestyle tips. Be supportive and energetic.",
+    "bakery789": "You are a helpful assistant for a family-owned bakery. Answer questions about menu items, custom orders, hours, and local delivery options with warmth and friendliness.",
+    "default": "You are a helpful and friendly customer service assistant. Politely help users with common questions about products, services, or support."
+}
+
 @app.route('/')
 def index():
     """Main demonstration page showing the widget in action"""
@@ -34,58 +42,57 @@ def chat():
     """API endpoint to handle chat messages and return AI responses"""
     try:
         app.logger.info("Chat endpoint called")
-        
+
         data = request.get_json()
         app.logger.info(f"Received data: {data}")
-        
+
         if not data or 'message' not in data:
             return jsonify({'error': 'Message is required', 'success': False}), 400
-        
+
         user_message = data['message']
         conversation_history = data.get('history', [])
-        
-        app.logger.info(f"Processing message: {user_message}")
-        
-        # Build conversation context - using the same format as the working test
-        messages = []
-        
-        # Add system message for the AI assistant
-        messages.append({
+        client_id = data.get('client_id', 'default')  # <-- key line
+        system_prompt = CLIENT_PROMPTS.get(client_id, CLIENT_PROMPTS['default'])
+
+        app.logger.info(f"Using client_id: {client_id}")
+        app.logger.info(f"Using system prompt: {system_prompt[:60]}...")
+
+        # Build message list with system prompt
+        messages = [{
             "role": "system",
-            "content": "You are a knowledgeable solar energy consultant embedded on a solar company website. Help customers understand solar panels, calculate potential savings, explain installation processes, and provide information about financing options. Be friendly, professional, and focus on the benefits of solar energy. Answer questions about:\n\n- Solar panel costs and savings calculations\n- System sizing based on energy usage\n- Installation timeline and process\n- Financing options and tax incentives\n- Equipment warranties and maintenance\n- Environmental benefits\n\nIf asked about specific pricing, encourage them to get a personalized quote. Always be helpful and encouraging about solar adoption."
-        })
-        
+            "content": system_prompt
+        }]
+
         # Add conversation history
-        for msg in conversation_history[-10:]:  # Keep last 10 messages for context
+        for msg in conversation_history[-10:]:
             messages.append({
                 "role": msg.get('role', 'user'),
                 "content": msg.get('content', '')
             })
-        
+
         # Add current user message
         messages.append({
             "role": "user",
             "content": user_message
         })
-        
+
         app.logger.info("Calling OpenAI API...")
-        
-        # Use legacy OpenAI API call (same style as your working test script)
+
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
             max_tokens=500,
             temperature=0.7
         )
-        
+
         ai_response = response.choices[0].message.content
         app.logger.info(f"OpenAI response received: {ai_response[:100]}...")
-        
+
         return jsonify({
             'response': ai_response,
             'success': True
         })
-        
+
     except Exception as e:
         app.logger.error(f"Error in chat endpoint: {str(e)}")
         return jsonify({
