@@ -5,6 +5,8 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
 
+from customer_list import get_assistant_id_from_request
+
 # Initialize OpenAI client using new SDK style
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -19,16 +21,10 @@ CORS(app, origins="*")
 # Your OpenAI Assistant ID (created in platform.openai.com)
 ASSISTANT_ID = "asst_zZE4Nr5XBwdulUANBvHexdEZ"
 
-@app.route('/')
-def index():
-    return render_template('index.html')
 # @app.route('/')
 # def index():
 #     return render_template('index.html')
 
-@app.route('/embed-demo')
-def embed_demo():
-    return render_template('embed-demo.html')
 # @app.route('/embed-demo')
 # def embed_demo():
 #     return render_template('embed-demo.html')
@@ -59,10 +55,23 @@ def chat():
         app.logger.info("Message added to thread")
 
         # Step 3: Run the assistant on the thread
+        # adjusting to try and get multiple assistants in use
+        # run = client.beta.threads.runs.create(
+        #     assistant_id=ASSISTANT_ID,
+        #     thread_id=thread.id
+        # )
+        
+        assistant_id = get_assistant_id_from_request(request)
+
+        if not assistant_id:
+            return jsonify({'error': 'Unknown origin — no assistant configured for this domain', 'success': False}), 403
+
         run = client.beta.threads.runs.create(
-            assistant_id=ASSISTANT_ID,
+            assistant_id=assistant_id,
             thread_id=thread.id
         )
+
+        # not sure if i need to remove this line with all other lines in step 3, this was with other original step 3 lines
         app.logger.info(f"Run started: {run.id}")
 
         # Step 4: Poll until the run completes
